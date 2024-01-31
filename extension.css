@@ -1,0 +1,16 @@
+[data-tag^="lichess"] {
+    display: none;
+}
+
+[data-tag^="lichess-hint"] + .rm-highlight {
+    display: none !important;
+}
+
+[data-page-links^='["lichess"]'] .roam-block {
+    height: 444px !important;
+}
+
+[data-page-links^='["lichess"]'] .hoverparent, [data-page-links^='["lichess"]'] .react-resizable, [data-page-links^='["lichess"]'] iframe {
+    height: 444px !important;
+    width: 400px !important;
+}

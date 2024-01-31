@@ -1,0 +1,25 @@
+{
+  "name": "crosswords",
+  "version": "1.0.0",
+  "description": "Crosswords for your Roam Research graph",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mlava/crosswords.git"
+  },
+  "keywords": [
+    "crossword"
+  ],
+  "author": "Mark Lavercombe",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mlava/crosswords/issues"
+  },
+  "homepage": "https://github.com/mlava/crosswords#readme",
+  "devDependencies": {
+    "webpack": "^5.90.0"
+  }
+}
