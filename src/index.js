@@ -1,33 +1,9 @@
-const config = {
-    tabTitle: "NYT Crosswords",
-    settings: [
-        {
-            id: "theme",
-            name: "Theme",
-            description: "Your preferred colour theme",
-            action: { type: "select", items: ["default", "blue", "blue2", "blue3", "blue-marble", "canvas", "wood", "wood2", "wood3", "wood4", "maple", "maple2", "brown", "leather", "green", "marble", "green-plastic", "grey", "metal", "olive", "newspaper", "purple", "purple-diag", "pink", "ic", "horsey"] },
-        },
-        {
-            id: "background",
-            name: "Background",
-            description: "Your preferred background colour",
-            action: { type: "select", items: ["default", "light", "dark", "system"] },
-        },
-        {
-            id: "pieceset",
-            name: "Piece Set",
-            description: "Your preferred piece set",
-            action: { type: "select", items: ["default", "cburnett", "merida", "alpha", "pirouetti", "chessnut", "chess7", "reillycraig", "companion", "riohacha", "kosal", "leipzig", "fantasy", "spatial", "celtic", "california", "caliente", "pixel", "maestro", "fresca", "cardinal", "gioco", "tatiana", "staunty", "governor", "dubrovny", "icpieces", "mpchess", "kiwen-suwi", "horsey", "anarcandy", "shapes", "letter", "disguised"] },
-        },
-    ]
-};
+import Crossword from '@jaredreisinger/react-crossword';
 
 export default {
     onload: ({ extensionAPI }) => {
-        extensionAPI.settings.panel.create(config);
-
         extensionAPI.ui.commandPalette.addCommand({
-            label: "Daily Chess Puzzle from Lichess",
+            label: "Random crossword from New York Times",
             callback: () => {
                 const uid = window.roamAlphaAPI.ui.getFocusedBlock()?.["block-uid"];
                 if (uid == undefined) {
@@ -37,7 +13,7 @@ export default {
                     window.roamAlphaAPI.updateBlock(
                         { block: { uid: uid, string: "Loading...".toString(), open: true } });
                 }
-                fetchChessPuzzle().then(async (blocks) => {
+                fetchCrossword().then(async (blocks) => {
                     await window.roamAlphaAPI.updateBlock(
                         { block: { uid: uid, string: blocks[0].text.toString(), open: true } });
                     for (var i = 0; i < blocks[0].children.length; i++) {
@@ -52,9 +28,9 @@ export default {
         });
 
         const args = {
-            text: "CHESSPUZZLE",
-            help: "Import the daily chess puzzle from Lichess",
-            handler: (context) => fetchChessPuzzle,
+            text: "NYTCROSSWORD",
+            help: "Import a random crossword from the New York Times",
+            handler: (context) => fetchCrossword,
         };
 
         if (window.roamjs?.extension?.smartblocks) {
@@ -68,54 +44,112 @@ export default {
             );
         }
 
-        async function fetchChessPuzzle() {
-            var theme, bg, pS;
-            var titleString = "**Lichess Puzzle of the Day:**"
-            var url = "https://lichess.org/training/frame?theme=";
-            if (extensionAPI.settings.get("theme")) {
-                theme = extensionAPI.settings.get("theme");
-            } else {
-                theme = "brown";
+        async function fetchCrossword() {
+            function randomDate(start, end) {
+                return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
             }
-            url += theme + "&bg=";
-            if (extensionAPI.settings.get("background")) {
-                bg = extensionAPI.settings.get("background");
-            } else {
-                bg = "dark";
+            const d = randomDate(new Date(1979, 0, 1), new Date(2014, 12, 31));
+            
+            var month = (d.getMonth() + 1).toString();
+            if (month < 10) {
+                month = "0"+month;
             }
-            url += bg;
-            if (extensionAPI.settings.get("pieceset")) {
-                pS = extensionAPI.settings.get("pieceset");
-                url += "&pieceSet=" + pS;
+            var day = d.getDate().toString();
+            if (day < 10) {
+                day = "0"+day;
             }
+            var year = d.getFullYear().toString();
 
-            const response = await fetch("https://lichess.org/api/puzzle/daily");
+            var url = `https://raw.githubusercontent.com/doshea/nyt_crosswords/master/${year}/${month}/${day}.json`;
+            const response = await fetch(url);
             const data = await response.json();
-            var hint = data.puzzle.solution[0];
-            hint = hint.slice(0, 2);
+            console.info(data);
+            let answersGridAcross = data.grid.join('');
+            let answersGridDown = "";
+            for (var m = 0; m < data.grid.length; m++) {
+                let n = Math.floor(m/data.size.rows) + (data.size.rows * (m % data.size.rows));
+                answersGridDown += data.grid[n];
+            }
+            let size = data.size.cols;
+            
+            let sourceData = "{across: ";
+            for (var i = 0; i< data.clues.across.length; i++) {
+                var row = 0, col = 0;
+                let index = answersGridAcross.indexOf(data.answers.across[i]) + 1;
+                for (var k = 1; k < size + 1; k++) {
+                    if (index < ((size * k) + 1) && row == 0 && col == 0) {
+                        row = k;
+                        if (k == 1) {
+                            col = index;
+                        } else {
+                            col = index - (size * (k-1));
+                        }
+                    }
+                }
 
-            return [
-                {
-                    text: titleString,
-                    children: [
-                        { text: "{{iframe: " + url + "}} #lichess" },
-                        { text: "Focus for Hint: #lichess-hint^^    Move piece at " + hint + "    ^^" },
-                    ]
-                },
-            ];
+                const regex = /([0-9]{1,2}). (.+)/gm;
+                let m;
+                while ((m = regex.exec(data.clues.across[i])) !== null) {
+                    if (m.index === regex.lastIndex) {
+                        regex.lastIndex++;
+                    }
+                    m.forEach((match, groupIndex) => {
+                        if (groupIndex == 1) {
+                            sourceData += `${match}: {clue: "`;
+                        } else if (groupIndex == 2) {
+                            const regex = /([\"\'])/gm;
+                            const subst = `\\$1`;
+                            var clue = match.replace(regex, subst);
+                            sourceData += `${clue}", answer: "${data.answers.across[i]}", row: ${row}, col: ${col},},`;
+                        }
+                    });
+                }
+            }
+            sourceData += "}, ";
+
+            sourceData += "{down: ";
+            for (var i = 0; i< data.clues.down.length; i++) {
+                var row = 0, col = 0;
+                let index = answersGridDown.indexOf(data.answers.down[i]) + 1;
+                
+                for (var k = 1; k < size + 1; k++) {
+                    if (index < ((size * k) + 1) && row == 0 && col == 0) {
+                        col = k;
+                        if (k == 1) {
+                            row = index;
+                        } else {
+                            row = index - (size * (k-1));
+                        }
+                    }
+                }
+                
+                const regex = /([0-9]{1,2}). (.+)/gm;
+                let m;
+                while ((m = regex.exec(data.clues.down[i])) !== null) {
+                    if (m.index === regex.lastIndex) {
+                        regex.lastIndex++;
+                    }
+                    m.forEach((match, groupIndex) => {
+                        if (groupIndex == 1) {
+                            sourceData += `${match}: {clue: "`;
+                        } else if (groupIndex == 2) {
+                            const regex = /([\"\'])/gm;
+                            const subst = `\\$1`;
+                            var clue = match.replace(regex, subst);
+                            sourceData += `${clue}", answer: "${data.answers.down[i]}", row: ${row}, col: ${col},},`;
+                        }
+                    });
+                }
+            }
+            
+            sourceData += "}";
+            console.info(sourceData);
+            return <Crossword data={sourceData} />;
         };
     },
     onunload: () => {
         if (window.roamjs?.extension?.smartblocks) {
-            window.roamjs.extension.smartblocks.unregisterCommand("CHESSPUZZLE");
+            window.roamjs.extension.smartblocks.unregisterCommand("NYTCROSSWORD");
         }
     }
 }
-
-async function fetchChessPuzzle() {
-    return [
-        {
-            text: "{{iframe: https://lichess.org/training/frame?theme=blue&bg=light}} #lichess",
-        },
-    ];
-};

@@ -20,7 +20,8 @@
   },
   "homepage": "https://github.com/mlava/crosswords#readme",
   "devDependencies": {
-    "webpack": "^5.90.0"
+    "webpack": "^5.90.0",
+    "webpack-cli": "^5.1.4"
   },
   "dependencies": {
     "@jaredreisinger/react-crossword": "^5.2.0"
