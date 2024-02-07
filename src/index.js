@@ -52,6 +52,9 @@ export default {
             }
             var year = d.getFullYear().toString();
 
+            // source for NYT crossword definitions is https://github.com/doshea/nyt_crosswords
+            // no license specified on github
+            
             var url = `https://raw.githubusercontent.com/doshea/nyt_crosswords/master/${year}/${month}/${day}.json`;
             const response = await fetch(url);
             const data = await response.json();
