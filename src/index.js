@@ -1,7 +1,5 @@
 import { renderCrossword } from "./crosswordComponent";
 
-const componentName = 'crossword';
-
 export default {
     onload: ({ extensionAPI }) => {
         extensionAPI.ui.commandPalette.addCommand({
@@ -14,7 +12,7 @@ export default {
                 } else {
                     window.roamAlphaAPI.updateBlock(
                         { block: { uid: uid, string: "Loading...".toString(), open: true } });
-                    fetchCrossword();
+                    fetchCrossword(uid);
                 }
             }
         });
@@ -36,7 +34,7 @@ export default {
             );
         }
 
-        async function fetchCrossword() {
+        async function fetchCrossword(blockUid) {
             function randomDate(start, end) {
                 return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
             }
@@ -54,7 +52,7 @@ export default {
 
             // source for NYT crossword definitions is https://github.com/doshea/nyt_crosswords
             // no license specified on github
-            
+
             var url = `https://raw.githubusercontent.com/doshea/nyt_crosswords/master/${year}/${month}/${day}.json`;
             const response = await fetch(url);
             const data = await response.json();
@@ -67,7 +65,7 @@ export default {
             }
             let size = data.size.cols;
 
-            let sourceData = "{across: ";
+            let sourceData = "{across: {";
             for (var i = 0; i < data.clues.across.length; i++) {
                 var row = 0, col = 0;
                 let index = answersGridAcross.indexOf(data.answers.across[i]) + 1;
@@ -102,7 +100,7 @@ export default {
             }
             sourceData += "}, ";
 
-            sourceData += "{down: ";
+            sourceData += "down: {";
             for (var i = 0; i < data.clues.down.length; i++) {
                 var row = 0, col = 0;
                 let index = answersGridDown.indexOf(data.answers.down[i]) + 1;
@@ -137,10 +135,10 @@ export default {
                 }
             }
 
-            sourceData += "}";
+            sourceData += "}}";
             window.crosswordData = sourceData;
-            console.info(sourceData);
-            renderCrossword;
+            console.info(window.crosswordData);
+            renderCrossword({ blockUid });
         };
     },
     onunload: () => {
