@@ -136,6 +136,7 @@ export default {
 
             sourceData += "}";
             window.crosswordData = sourceData;
+            console.info(sourceData);
             renderCrossword;
         };
     },
