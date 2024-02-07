@@ -30,5 +30,15 @@
   "dependencies": {
     "@jaredreisinger/react-crossword": "^5.2.0",
     "roamjs-components": "^0.72.4"
+  },
+  "overrides": {
+    "@jaredreisinger/react-crossword": {
+      "react": "17.0.2",
+      "react-dom": "17.0.2"
+    }
+  },
+  "peerDependencies": {
+    "react": "17.0.2",
+    "react-dom": "17.0.2"
   }
 }

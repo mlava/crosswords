@@ -14,7 +14,7 @@ export default {
                 } else {
                     window.roamAlphaAPI.updateBlock(
                         { block: { uid: uid, string: "Loading...".toString(), open: true } });
-                    fetchCrossword(uid);
+                    fetchCrossword();
                 }
             }
         });
@@ -36,7 +36,7 @@ export default {
             );
         }
 
-        async function fetchCrossword(blockUid) {
+        async function fetchCrossword() {
             function randomDate(start, end) {
                 return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
             }
