@@ -136,7 +136,7 @@ export default {
 
             sourceData += "}";
             window.crosswordData = sourceData;
-            renderCrossword(blockUid);
+            renderCrossword;
         };
     },
     onunload: () => {
