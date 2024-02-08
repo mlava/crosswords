@@ -2,13 +2,13 @@ import { createComponentRender } from "roamjs-components/components/ComponentCon
 import React from 'react';
 import Crossword from '@jaredreisinger/react-crossword';
 
-const CrosswordElement = () => {
+const CrosswordElement = ({ blockUid, sourceData }) => {
     return (
-        <Crossword data={window.crosswordData} />
+        <Crossword data={sourceData} />
     );
 };
 
 export const renderCrossword = createComponentRender(
-    ({ blockUid }) => <CrosswordElement blockUid={blockUid} style={'display: inline-block;'}/>,
+    ({ blockUid }) => <CrosswordElement blockUid={blockUid} sourceData />,
     "crossword-parent"
 );

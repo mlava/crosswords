@@ -1,7 +1,21 @@
 import { renderCrossword } from "./crosswordComponent";
+import createButtonObserver from "roamjs-components/dom/createButtonObserver";
+
+var runners = {
+    observers: [],
+}
 
 export default {
     onload: ({ extensionAPI }) => {
+        const onloadArgs = {extensionAPI};
+        const crosswordObserver = createButtonObserver({
+            attribute: 'crossword-block',
+            render: (b) => {
+                renderCrossword(b, onloadArgs)
+            }
+        });
+        runners['observers'] = [crosswordObserver];
+
         extensionAPI.ui.commandPalette.addCommand({
             label: "Random crossword from New York Times",
             callback: () => {
@@ -56,7 +70,7 @@ export default {
             var url = `https://raw.githubusercontent.com/doshea/nyt_crosswords/master/${year}/${month}/${day}.json`;
             const response = await fetch(url);
             const data = await response.json();
-            
+
             let answersGridAcross = data.grid.join('');
             let answersGridDown = "";
             for (var m = 0; m < data.grid.length; m++) {
@@ -138,12 +152,70 @@ export default {
             sourceData += "}}";
             window.crosswordData = sourceData;
             console.info(window.crosswordData);
-            renderCrossword({ blockUid });
+
+            // setTimeout is needed because sometimes block is left blank
+            setTimeout(async () => {
+                await window.roamAlphaAPI.updateBlock({ "block": { "uid": blockUid, "string": "{{crossword}}" } });
+            }, 200);
+
+            /*
+            await window.roamAlphaAPI.createBlock({
+                node: {
+                    text: "scratch",
+                    children: [
+                        {
+                            text: "custom",
+                        },
+                        {
+                            text: "selections",
+                        },
+                        {
+                            text: "conditions",
+                            children: [
+                                {
+                                    text: "clause",
+                                    children: [
+                                        {
+                                            text: "source",
+                                            children: [{ text: "node" }],
+                                        },
+                                        {
+                                            text: "relation",
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                },
+                parentUid: blockUid,
+            });
+            */
+            
+            document.querySelector("body")?.click();
+
+            /*
+            // TODO replace with document.body.dispatchEvent(new CustomEvent)
+            setTimeout(() => {
+                const el = document.querySelector(`.roam-block[id*="${uid}"]`);
+                const conditionEl = el?.querySelector(
+                    ".roamjs-query-condition-relation"
+                );
+                const conditionInput = conditionEl?.querySelector(
+                    "input"
+                );
+                conditionInput?.focus();
+            }, 200);
+            */
         };
     },
     onunload: () => {
+        for (let index = 0; index < runners['observers'].length; index++) {
+            const element = runners['observers'][index];
+            element.disconnect()
+        };
         if (window.roamjs?.extension?.smartblocks) {
             window.roamjs.extension.smartblocks.unregisterCommand("NYTCROSSWORD");
-        }
+        };
     }
 }
