@@ -4,7 +4,7 @@ import Crossword from '@jaredreisinger/react-crossword';
 
 const CrosswordElement = ({ blockUid }) => {
     return (
-        <Crossword data={sourceData} />
+        <Crossword data={window.crosswordData} />
     );
 };
 
