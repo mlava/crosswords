@@ -1,5 +1,6 @@
 import { renderCrossword } from "./crosswordComponent";
 import createButtonObserver from "roamjs-components/dom/createButtonObserver";
+import createBlock from "roamjs-components/writes/createBlock";
 
 var runners = {
     observers: [],
@@ -7,9 +8,9 @@ var runners = {
 
 export default {
     onload: ({ extensionAPI }) => {
-        const onloadArgs = {extensionAPI};
+        const onloadArgs = { extensionAPI };
         const crosswordObserver = createButtonObserver({
-            attribute: 'crossword-block',
+            attribute: 'crossword',
             render: (b) => {
                 renderCrossword(b, onloadArgs)
             }
@@ -71,6 +72,52 @@ export default {
             const response = await fetch(url);
             const data = await response.json();
 
+            let cDate = data.date.toString();
+            let cAuthor = data.author.toString();
+            cDate = cDate.split("/");
+            let cDay = cDate[1];
+            let cMonth = cDate[0];
+            let cYear = cDate[2];
+
+            let crosswordDate = "";
+            if (cMonth == 1) {
+                crosswordDate += "January"
+            } else if (cMonth == 2) {
+                crosswordDate += "February"
+            } else if (cMonth == 3) {
+                crosswordDate += "March"
+            } else if (cMonth == 4) {
+                crosswordDate += "April"
+            } else if (cMonth == 5) {
+                crosswordDate += "May"
+            } else if (cMonth == 6) {
+                crosswordDate += "June"
+            } else if (cMonth == 7) {
+                crosswordDate += "July"
+            } else if (cMonth == 8) {
+                crosswordDate += "August"
+            } else if (cMonth == 9) {
+                crosswordDate += "September"
+            } else if (cMonth == 10) {
+                crosswordDate += "October"
+            } else if (cMonth == 11) {
+                crosswordDate += "November"
+            } else if (cMonth == 12) {
+                crosswordDate += "December"
+            }
+            if (cDay > 3 && cDay < 21) {
+                cDay += "th";
+            } else if (cDay == 1 || cDay == 21 || cDay == 31) {
+                cDay += "st";
+            } else if (cDay == 2 || cDay == 22) {
+                cDay += "nd";
+            } else if (cDay == 3 || cDay == 23) {
+                cDay += "rd";
+            } else {
+                cDay += "th";
+            }
+            crosswordDate += " " + cDay + ", " + cYear;
+
             let answersGridAcross = data.grid.join('');
             let answersGridDown = "";
             for (var m = 0; m < data.grid.length; m++) {
@@ -79,8 +126,9 @@ export default {
             }
             let size = data.size.cols;
 
-            let sourceData = "{across: {";
-            for (var i = 0; i < data.clues.across.length; i++) {
+            let sourceObject = {};
+            let acrossClues = {};
+            for (var i = 0; i < data.clues.across.length + 1; i++) {
                 var row = 0, col = 0;
                 let index = answersGridAcross.indexOf(data.answers.across[i]) + 1;
                 for (var k = 1; k < size + 1; k++) {
@@ -97,25 +145,27 @@ export default {
                 const regex = /([0-9]{1,2}). (.+)/gm;
                 let m;
                 while ((m = regex.exec(data.clues.across[i])) !== null) {
+                    var clueIndex, clue, answer;
                     if (m.index === regex.lastIndex) {
                         regex.lastIndex++;
                     }
                     m.forEach((match, groupIndex) => {
                         if (groupIndex == 1) {
-                            sourceData += `${match}: {clue: "`;
+                            clueIndex = match;
                         } else if (groupIndex == 2) {
                             const regex = /([\"\'])/gm;
-                            const subst = `\\$1`;
-                            var clue = match.replace(regex, subst);
-                            sourceData += `${clue}", answer: "${data.answers.across[i]}", row: ${row}, col: ${col},},`;
+                            const subst = `\$1`;
+                            clue = match.replace(regex, subst);
+                            answer = data.answers.across[i];
                         }
                     });
+                    acrossClues[clueIndex] = { clue: clue, answer: answer, row: row, col: col, };
                 }
             }
-            sourceData += "}, ";
+            sourceObject['across'] = acrossClues;
 
-            sourceData += "down: {";
-            for (var i = 0; i < data.clues.down.length; i++) {
+            let downClues = {};
+            for (var i = 0; i < data.clues.down.length + 1; i++) {
                 var row = 0, col = 0;
                 let index = answersGridDown.indexOf(data.answers.down[i]) + 1;
 
@@ -133,80 +183,48 @@ export default {
                 const regex = /([0-9]{1,2}). (.+)/gm;
                 let m;
                 while ((m = regex.exec(data.clues.down[i])) !== null) {
+                    var clueIndex, clue, answer;
                     if (m.index === regex.lastIndex) {
                         regex.lastIndex++;
                     }
                     m.forEach((match, groupIndex) => {
                         if (groupIndex == 1) {
-                            sourceData += `${match}: {clue: "`;
+                            clueIndex = match;
                         } else if (groupIndex == 2) {
                             const regex = /([\"\'])/gm;
-                            const subst = `\\$1`;
-                            var clue = match.replace(regex, subst);
-                            sourceData += `${clue}", answer: "${data.answers.down[i]}", row: ${row}, col: ${col},},`;
+                            const subst = `\$1`;
+                            clue = match.replace(regex, subst);
+                            answer = data.answers.down[i];
                         }
                     });
+                    downClues[clueIndex] = { clue: clue, answer: answer, row: row, col: col, };
                 }
             }
 
-            sourceData += "}}";
-            window.crosswordData = sourceData;
-            console.info(window.crosswordData);
+            sourceObject['down'] = downClues;
+            let sourceString = JSON.stringify(sourceObject);
+            window.crosswordData = sourceString;
 
             // setTimeout is needed because sometimes block is left blank
             setTimeout(async () => {
-                await window.roamAlphaAPI.updateBlock({ "block": { "uid": blockUid, "string": "{{crossword}}" } });
+                await window.roamAlphaAPI.updateBlock({ "block": { "uid": blockUid, "string": "NYT Crossword" } });
+                await createBlock({
+                    node: {
+                        text: "[[" + crosswordDate + "]] ~ [[" + cAuthor + "]]",
+                        children: [
+                            {
+                                text: "{{crossword}}",
+                            },
+                            {
+                                text: "Crossword Definition: #NYTCrosswordData^^" + sourceString + "^^",
+                            },
+                        ],
+                    },
+                    parentUid: blockUid,
+                });
             }, 200);
 
-            /*
-            await window.roamAlphaAPI.createBlock({
-                node: {
-                    text: "scratch",
-                    children: [
-                        {
-                            text: "custom",
-                        },
-                        {
-                            text: "selections",
-                        },
-                        {
-                            text: "conditions",
-                            children: [
-                                {
-                                    text: "clause",
-                                    children: [
-                                        {
-                                            text: "source",
-                                            children: [{ text: "node" }],
-                                        },
-                                        {
-                                            text: "relation",
-                                        },
-                                    ],
-                                },
-                            ],
-                        },
-                    ],
-                },
-                parentUid: blockUid,
-            });
-            */
-            
             document.querySelector("body")?.click();
-
-            /*
-            // TODO replace with document.body.dispatchEvent(new CustomEvent)
-            setTimeout(() => {
-                const el = document.querySelector(`.roam-block[id*="${uid}"]`);
-                const conditionEl = el?.querySelector(
-                    ".roamjs-query-condition-relation"
-                );
-                const conditionInput = conditionEl?.querySelector(
-                    "input"
-                );
-                conditionInput?.focus();
-            }, 200);
-            */
         };
     },
     onunload: () => {

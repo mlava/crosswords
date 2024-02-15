@@ -13,11 +13,6 @@ module.exports = {
         outputModule: true,
     },
     mode: "development",
-    externals: {
-        react: "React",
-        "chrono-node": "ChronoNode"
-    },
-    externalsType: "window",
     module: {
         rules: [
             {
