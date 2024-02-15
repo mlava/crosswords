@@ -35,7 +35,11 @@ export default {
         const args = {
             text: "NYTCROSSWORD",
             help: "Import a random crossword from the New York Times",
-            handler: (context) => fetchCrossword,
+            handler: (context) => {
+                window.roamAlphaAPI.updateBlock(
+                    { block: { uid: context.triggerUid, string: "Loading...".toString(), open: true } });
+                fetchCrossword(context.triggerUid);
+            }
         };
 
         if (window.roamjs?.extension?.smartblocks) {
