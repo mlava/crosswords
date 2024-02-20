@@ -207,7 +207,6 @@ export default {
 
             sourceObject['down'] = downClues;
             let sourceString = JSON.stringify(sourceObject);
-            window.crosswordData = sourceString;
 
             // setTimeout is needed because sometimes block is left blank
             setTimeout(async () => {
@@ -221,6 +220,9 @@ export default {
                             },
                             {
                                 text: "Crossword Definition: #NYTCrosswordData^^" + sourceString + "^^",
+                            },
+                            {
+                                text: "Crossword Guesses: ",
                             },
                         ],
                     },

@@ -6,6 +6,7 @@
   "scripts": {
     "build": "webpack"
   },
+  "mode": "development",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mlava/crosswords.git"

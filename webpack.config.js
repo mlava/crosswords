@@ -12,7 +12,6 @@ module.exports = {
     experiments: {
         outputModule: true,
     },
-    mode: "development",
     module: {
         rules: [
             {
