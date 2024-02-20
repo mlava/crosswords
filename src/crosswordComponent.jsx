@@ -1,5 +1,5 @@
 import { createComponentRender } from "roamjs-components/components/ComponentContainer";
-import { React, useEffect } from 'react';
+import React from 'react';
 import {
     CrosswordProvider,
     CrosswordGrid,
@@ -49,7 +49,6 @@ const CrosswordElement = ({ blockUid }) => {
 
         if (cLSGuessesDate != undefined && cRRGuessesDate > cLSGuessesDate) { // RR guesses are newer than localStorage, so update localStorage
             localStorage.setItem(key, cRRGuessesString);
-            console.info("overwriting LS");
         } else if (cLSGuessesDate != undefined && cRRGuessesDate < cLSGuessesDate) { // localStorage guesses are newer than RR, so update RR
             let string = "Crossword Guesses: #NYTCrosswordData^^" + cLSGuesses + "^^";
             window.roamAlphaAPI.updateBlock({ "block": { "uid": cRRGuessesUid, "string": string } });

@@ -12,6 +12,10 @@ module.exports = {
     experiments: {
         outputModule: true,
     },
+    mode: 'production',
+    performance: {
+        hints: false,
+    },
     module: {
         rules: [
             {
