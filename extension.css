@@ -2,14 +2,14 @@
   display: none !important;
 }
 
-[data-tag^="NYTCrosswordData"] + .rm-highlight {
+[data-tag^="NYTCrosswordData"]+.rm-highlight {
   display: none !important;
 }
 
 .crosswordGrid {
-  display: grid; 
+  display: grid;
   grid-template-rows: min-content;
-  grid-template-columns: 1fr 1fr ;
+  grid-template-columns: 1fr 1fr;
   gap: 5px;
   max-width: 600px;
 }
@@ -19,4 +19,10 @@
   grid-column-start: 1;
   grid-row-end: 2;
   grid-column-end: 3;
+}
+
+.crossword.grid > div {
+  padding: 10px !important;
+  position: relative !important;
+  background: black !important;
 }

@@ -132,21 +132,31 @@ export default {
 
             let sourceObject = {};
             let acrossClues = {};
-            for (var i = 0; i < data.clues.across.length + 1; i++) {
+            let lastRow = 0;
+            for (var i = 0; i < data.clues.across.length; i++) {
                 var row = 0, col = 0;
-                let index = answersGridAcross.indexOf(data.answers.across[i]) + 1;
-                for (var k = 1; k < size + 1; k++) {
-                    if (index < ((size * k) + 1) && row == 0 && col == 0) {
-                        row = k;
-                        if (k == 1) {
-                            col = index;
-                        } else {
-                            col = index - (size * (k - 1));
-                        }
+                var testAnswersGridAcross, index;
+                var testAnswer = data.answers.across[i];
+
+                await getIndex();
+                async function getIndex(start) {
+                    if (start == null) {
+                        index = answersGridAcross.indexOf(testAnswer);
+                    } else {
+                        testAnswersGridAcross = answersGridAcross.substring(start + 1);
+                        index = testAnswersGridAcross.indexOf(testAnswer) + start + 1;
+                    }
+
+                    if (Math.floor(index/size) < lastRow) { // this can't be right, so there must be another answer match
+                        await getIndex(index);
+                    } else {
+                        row = Math.floor(index/size);
+                        col = index % size;
+                        lastRow = row;
                     }
                 }
 
-                const regex = /([0-9]{1,2}). (.+)/gm;
+                const regex = /([0-9]{1,3}). (.+)/gm;
                 let m;
                 while ((m = regex.exec(data.clues.across[i])) !== null) {
                     var clueIndex, clue, answer;
@@ -169,22 +179,27 @@ export default {
             sourceObject['across'] = acrossClues;
 
             let downClues = {};
-            for (var i = 0; i < data.clues.down.length + 1; i++) {
+            let lastCol = 0;
+            for (var i = 0; i < data.clues.down.length; i++) {
                 var row = 0, col = 0;
-                let index = answersGridDown.indexOf(data.answers.down[i]) + 1;
+                var testAnswersGridDown, index;
+                var testAnswer = data.answers.down[i];
 
-                for (var k = 1; k < size + 1; k++) {
-                    if (index < ((size * k) + 1) && row == 0 && col == 0) {
-                        col = k;
-                        if (k == 1) {
-                            row = index;
-                        } else {
-                            row = index - (size * (k - 1));
-                        }
+                await getIndex();
+                async function getIndex(start) {
+                    if (start == null) {
+                        index = answersGridDown.indexOf(testAnswer);
+                    } else {
+                        testAnswersGridDown = answersGridDown.substring(start + 1);
+                        index = testAnswersGridDown.indexOf(testAnswer) + start + 1;
                     }
+
+                    col = Math.floor(index/size);
+                    row = index % size;
+                    lastCol = col;
                 }
 
-                const regex = /([0-9]{1,2}). (.+)/gm;
+                const regex = /([0-9]{1,3}). (.+)/gm;
                 let m;
                 while ((m = regex.exec(data.clues.down[i])) !== null) {
                     var clueIndex, clue, answer;

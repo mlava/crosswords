@@ -78,7 +78,7 @@ const CrosswordElement = ({ blockUid }) => {
     
     return <CrosswordProvider data={JSON.parse(crosswordData[1])} storageKey={key} onCellChange={() => window.dispatchEvent(new Event('storage'))} /*isCrosswordCorrect={() => alert("All Correct!")} onAnswerCorrect={() => alert("Correct!")}*/ >
         <div class="crosswordGrid">
-            <CrosswordGrid class="crosswordGrid1" />
+            <CrosswordGrid />
             <DirectionClues direction="across" />
             <DirectionClues direction="down" />
         </div>
