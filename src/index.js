@@ -53,6 +53,13 @@ export default {
             );
         }
 
+        // clean up any rogue localstorage entries associated with this extension
+        Object.keys(localStorage)
+            .filter(x =>
+                x.startsWith('roam_research_nytcrossword_'))
+            .forEach(x =>
+                localStorage.removeItem(x));
+
         async function fetchCrossword(blockUid) {
             function randomDate(start, end) {
                 return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
@@ -147,10 +154,10 @@ export default {
                         index = testAnswersGridAcross.indexOf(testAnswer) + start + 1;
                     }
 
-                    if (Math.floor(index/size) < lastRow) { // this can't be right, so there must be another answer match
+                    if (Math.floor(index / size) < lastRow) { // this can't be right, so there must be another answer match
                         await getIndex(index);
                     } else {
-                        row = Math.floor(index/size);
+                        row = Math.floor(index / size);
                         col = index % size;
                         lastRow = row;
                     }
@@ -194,7 +201,7 @@ export default {
                         index = testAnswersGridDown.indexOf(testAnswer) + start + 1;
                     }
 
-                    col = Math.floor(index/size);
+                    col = Math.floor(index / size);
                     row = index % size;
                     lastCol = col;
                 }
@@ -232,17 +239,21 @@ export default {
                         children: [
                             {
                                 text: "{{crossword}}",
-                            },
-                            {
-                                text: "Crossword Definition: #NYTCrosswordData^^" + sourceString + "^^",
-                            },
-                            {
-                                text: "Crossword Guesses: ",
+                                children: [
+                                    {
+                                        text: "Crossword Definition: #NYTCrosswordData^^" + sourceString + "^^",
+                                    },
+                                    {
+                                        text: "Crossword Guesses: ",
+                                    },
+                                ],
                             },
                         ],
                     },
                     parentUid: blockUid,
                 });
+                let blockData = window.roamAlphaAPI.data.pull("[:node/title :block/uid {:block/children ...}]", `[:block/uid \"${blockUid}\"]`);
+                await window.roamAlphaAPI.updateBlock({ "block": { "uid": blockData[":block/children"][0][":block/children"][0][":block/uid"], "open": false } });
             }, 200);
 
             document.querySelector("body")?.click();
@@ -256,5 +267,11 @@ export default {
         if (window.roamjs?.extension?.smartblocks) {
             window.roamjs.extension.smartblocks.unregisterCommand("NYTCROSSWORD");
         };
+        // clean up any rogue localstorage entries associated with this extension
+        Object.keys(localStorage)
+            .filter(x =>
+                x.startsWith('roam_research_nytcrossword_'))
+            .forEach(x =>
+                localStorage.removeItem(x));
     }
 }

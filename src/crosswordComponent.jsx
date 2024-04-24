@@ -16,9 +16,11 @@ const CrosswordElement = ({ blockUid }) => {
             if (blockData[":block/parents"][i].hasOwnProperty([":block/children"])) {
                 key += blockData[":block/parents"][i][":block/children"][0][":block/string"].split(" ~ ")[0];
                 if (blockData[":block/parents"][i][":block/children"][0].hasOwnProperty([":block/children"])) {
-                    cString = blockData[":block/parents"][i][":block/children"][0][":block/children"][1][":block/string"];
-                    cRRGuesses = blockData[":block/parents"][i][":block/children"][0][":block/children"][2][":block/string"];
-                    cRRGuessesUid = blockData[":block/parents"][i][":block/children"][0][":block/children"][2][":block/uid"];
+                    if (blockData[":block/parents"][i][":block/children"][0][":block/children"][0].hasOwnProperty([":block/children"])) {
+                        cString = blockData[":block/parents"][i][":block/children"][0][":block/children"][0][":block/children"][0][":block/string"];
+                        cRRGuesses = blockData[":block/parents"][i][":block/children"][0][":block/children"][0][":block/children"][1][":block/string"];
+                        cRRGuessesUid = blockData[":block/parents"][i][":block/children"][0][":block/children"][0][":block/children"][1][":block/uid"];
+                    }
                 }
             }
         }
@@ -28,10 +30,10 @@ const CrosswordElement = ({ blockUid }) => {
     //// need to store data in RR and then update LS and RR data as required to keep them in sync
 
     // check if guesses already in localstorage
-    if (key != "roam_research_nytcrossword_") { // there's a valid key to look for
+    if (key != "roam_research_nytcrossword_") { // there's a specific key to look for
         cLSGuesses = localStorage.getItem(key);
     }
-    if (cLSGuesses != undefined && cLSGuesses != null) { // there's a localStorage key that matches
+    if (cLSGuesses != undefined && cLSGuesses != null) { // there's a localStorage key that matches this puzzle key
         cLSGuessesDate = JSON.parse(cLSGuesses).date;
     }
 
@@ -66,8 +68,11 @@ const CrosswordElement = ({ blockUid }) => {
         let string = "Crossword Guesses: #NYTCrosswordData^^" + ls + "^^";
         window.roamAlphaAPI.updateBlock({ "block": { "uid": cRRGuessesUid, "string": string } });
     }
-    // monitor for hashchange to remove localStorageObserver 
-    addEventListener("hashchange", (event) => { removeEventListener('storage', localStorageObserver) });
+    // monitor for hashchange to remove localStorageObserver and localstorage key
+    addEventListener("hashchange", (event) => { 
+        removeEventListener('storage', localStorageObserver);
+        localStorage.removeItem(key); // clean up localstorage :-)
+    });
 
     //// finished ensuring sync between RR and browser localStorage
 
