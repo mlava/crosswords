@@ -27,7 +27,22 @@ export default {
                 } else {
                     window.roamAlphaAPI.updateBlock(
                         { block: { uid: uid, string: "Loading...".toString(), open: true } });
-                    fetchCrossword(uid);
+                    fetchCrossword(uid, false);
+                }
+            }
+        });
+
+        extensionAPI.ui.commandPalette.addCommand({
+            label: "Today's crossword from New York Times",
+            callback: () => {
+                const uid = window.roamAlphaAPI.ui.getFocusedBlock()?.["block-uid"];
+                if (uid == undefined) {
+                    alert("Please focus a block before importing a puzzle");
+                    return;
+                } else {
+                    window.roamAlphaAPI.updateBlock(
+                        { block: { uid: uid, string: "Loading...".toString(), open: true } });
+                    fetchCrossword(uid, true);
                 }
             }
         });
@@ -38,7 +53,17 @@ export default {
             handler: (context) => {
                 window.roamAlphaAPI.updateBlock(
                     { block: { uid: context.triggerUid, string: "Loading...".toString(), open: true } });
-                fetchCrossword(context.triggerUid);
+                fetchCrossword(context.triggerUid, false);
+            }
+        };
+
+        const args1 = {
+            text: "NYTCROSSWORDTODAY",
+            help: "Import today's crossword from the New York Times",
+            handler: (context) => {
+                window.roamAlphaAPI.updateBlock(
+                    { block: { uid: context.triggerUid, string: "Loading...".toString(), open: true } });
+                fetchCrossword(context.triggerUid, true);
             }
         };
 
@@ -49,7 +74,8 @@ export default {
                 `roamjs:smartblocks:loaded`,
                 () =>
                     window.roamjs?.extension.smartblocks &&
-                    window.roamjs.extension.smartblocks.registerCommand(args)
+                    window.roamjs.extension.smartblocks.registerCommand(args) &&
+                    window.roamjs.extension.smartblocks.registerCommand(args1)
             );
         }
 
@@ -60,35 +86,46 @@ export default {
             .forEach(x =>
                 localStorage.removeItem(x));
 
-        async function fetchCrossword(blockUid) {
-            function randomDate(start, end) {
-                return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+        async function fetchCrossword(blockUid, today) {
+            var cDate, cAuthor, cDay, cMonth, cYear, data, cols, size, rows;
+            if (today) { // get today's crossword from XWordInfo
+                var url = `https://frozen-forest-74426-64fa1018c64c.herokuapp.com/`;
+                const response = await fetch(url);
+                data = await response.json();
+                data = JSON.parse(data);
+            } else { // get a random crossword from an archive on github
+                function randomDate(start, end) {
+                    return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+                }
+                const d = randomDate(new Date(1979, 0, 1), new Date(2014, 12, 31));
+
+                var month = (d.getMonth() + 1).toString();
+                if (month < 10) {
+                    month = "0" + month;
+                }
+                var day = d.getDate().toString();
+                if (day < 10) {
+                    day = "0" + day;
+                }
+                var year = d.getFullYear().toString();
+
+                // source for NYT crossword definitions is https://github.com/doshea/nyt_crosswords
+                // no license specified on github
+
+                var url = `https://raw.githubusercontent.com/doshea/nyt_crosswords/master/${year}/${month}/${day}.json`;
+                const response = await fetch(url);
+                data = await response.json();
             }
-            const d = randomDate(new Date(1979, 0, 1), new Date(2014, 12, 31));
 
-            var month = (d.getMonth() + 1).toString();
-            if (month < 10) {
-                month = "0" + month;
-            }
-            var day = d.getDate().toString();
-            if (day < 10) {
-                day = "0" + day;
-            }
-            var year = d.getFullYear().toString();
-
-            // source for NYT crossword definitions is https://github.com/doshea/nyt_crosswords
-            // no license specified on github
-
-            var url = `https://raw.githubusercontent.com/doshea/nyt_crosswords/master/${year}/${month}/${day}.json`;
-            const response = await fetch(url);
-            const data = await response.json();
-
-            let cDate = data.date.toString();
-            let cAuthor = data.author.toString();
+            cDate = data.date.toString();
+            cAuthor = data.author.toString();
             cDate = cDate.split("/");
-            let cDay = cDate[1];
-            let cMonth = cDate[0];
-            let cYear = cDate[2];
+            cDay = cDate[1];
+            cMonth = cDate[0];
+            cYear = cDate[2];
+            cols = data.size.cols;
+            size = data.size.cols;
+            rows = data.size.rows;
 
             let crosswordDate = "";
             if (cMonth == 1) {
@@ -131,11 +168,17 @@ export default {
 
             let answersGridAcross = data.grid.join('');
             let answersGridDown = "";
-            for (var m = 0; m < data.grid.length; m++) {
-                let n = Math.floor(m / data.size.rows) + (data.size.rows * (m % data.size.rows));
-                answersGridDown += data.grid[n];
+            if (today) {
+                for (var m = 0; m < data.grid.length - 1; m++) {
+                    let n = Math.floor(m / rows) + (rows * (m % rows));
+                    answersGridDown += data.grid[n];
+                }
+            } else {
+                for (var m = 0; m < data.grid.length; m++) {
+                    let n = Math.floor(m / rows) + (rows * (m % rows));
+                    answersGridDown += data.grid[n];
+                }
             }
-            let size = data.size.cols;
 
             let sourceObject = {};
             let acrossClues = {};
@@ -154,11 +197,11 @@ export default {
                         index = testAnswersGridAcross.indexOf(testAnswer) + start + 1;
                     }
 
-                    if (Math.floor(index / size) < lastRow) { // this can't be right, so there must be another answer match
+                    if (Math.floor(index / cols) < lastRow) { // this can't be right, so there must be another answer match
                         await getIndex(index);
                     } else {
-                        row = Math.floor(index / size);
-                        col = index % size;
+                        row = Math.floor(index / cols);
+                        col = index % cols;
                         lastRow = row;
                     }
                 }
@@ -180,6 +223,9 @@ export default {
                             answer = data.answers.across[i];
                         }
                     });
+
+                    clue = clue.replaceAll("&quot;", "'");
+                    clue = clue.replaceAll("&#39;", "'");
                     acrossClues[clueIndex] = { clue: clue, answer: answer, row: row, col: col, };
                 }
             }
@@ -187,6 +233,7 @@ export default {
 
             let downClues = {};
             let lastCol = 0;
+
             for (var i = 0; i < data.clues.down.length; i++) {
                 var row = 0, col = 0;
                 var testAnswersGridDown, index;
@@ -200,9 +247,8 @@ export default {
                         testAnswersGridDown = answersGridDown.substring(start + 1);
                         index = testAnswersGridDown.indexOf(testAnswer) + start + 1;
                     }
-
-                    col = Math.floor(index / size);
-                    row = index % size;
+                    col = Math.floor(index / rows);
+                    row = index % rows;
                     lastCol = col;
                 }
 
@@ -223,7 +269,11 @@ export default {
                             answer = data.answers.down[i];
                         }
                     });
-                    downClues[clueIndex] = { clue: clue, answer: answer, row: row, col: col, };
+                    if (row != -1) {
+                        clue = clue.replaceAll("&quot;", "'");
+                        clue = clue.replaceAll("&#39;", "'");
+                        downClues[clueIndex] = { clue: clue, answer: answer, row: row, col: col, };
+                    }
                 }
             }
 
@@ -233,9 +283,20 @@ export default {
             // setTimeout is needed because sometimes block is left blank
             setTimeout(async () => {
                 await window.roamAlphaAPI.updateBlock({ "block": { "uid": blockUid, "string": "NYT Crossword" } });
+                var authorString = "";
+                if (cAuthor.match(" and ")) {
+                    authorString = "[[";
+                    var cAuthors = cAuthor.split(" and ");
+                    for (var i = 0; i < cAuthors.length - 1; i++) {
+                        authorString += cAuthors[i] + "]] [["
+                    }
+                    authorString += cAuthors[cAuthors.length - 1] + "]]";
+                } else {
+                    authorString = "[[" + cAuthor + "]]"
+                }
                 await createBlock({
                     node: {
-                        text: "[[" + crosswordDate + "]] ~ [[" + cAuthor + "]]",
+                        text: "[[" + crosswordDate + "]] ~ " + authorString,
                         children: [
                             {
                                 text: "{{crossword}}",
