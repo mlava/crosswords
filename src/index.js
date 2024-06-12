@@ -226,6 +226,8 @@ export default {
 
                     clue = clue.replaceAll("&quot;", "'");
                     clue = clue.replaceAll("&#39;", "'");
+                    clue = clue.replaceAll("<em>", "");
+                    clue = clue.replaceAll("</em>", "");
                     acrossClues[clueIndex] = { clue: clue, answer: answer, row: row, col: col, };
                 }
             }
@@ -272,6 +274,8 @@ export default {
                     if (row != -1) {
                         clue = clue.replaceAll("&quot;", "'");
                         clue = clue.replaceAll("&#39;", "'");
+                        clue = clue.replaceAll("<em>", "");
+                        clue = clue.replaceAll("</em>", "");
                         downClues[clueIndex] = { clue: clue, answer: answer, row: row, col: col, };
                     }
                 }
