@@ -26,3 +26,7 @@
   position: relative !important;
   background: black !important;
 }
+
+.correct {
+  text-decoration-line: line-through;
+} 
