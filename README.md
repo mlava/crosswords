@@ -1,6 +1,6 @@
 Import, render and complete today's New York Times crossword in Roam Research, or a random NYT crossword from history.
 
-![image](https://github.com/mlava/crosswords/assets/6857790/b9ba7fc3-5eed-4ec3-a547-67168a8a1043)
+<img width="461" alt="image" src="https://github.com/mlava/crosswords/assets/6857790/e0d6a48a-7b23-47d1-bdd6-1ef789f1387d">
 
 **NEW:**
 - Import today's crossword
