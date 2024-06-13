@@ -15,16 +15,12 @@ const CrosswordElement = ({ blockUid }) => {
         if (blockData[":block/parents"][i][":block/string"] == "NYT Crossword") {
             if (blockData[":block/parents"][i].hasOwnProperty([":block/children"])) {
                 key += blockData[":block/parents"][i][":block/children"][0][":block/string"].split(" ~ ")[0];
-                if (blockData[":block/parents"][i][":block/children"][0].hasOwnProperty([":block/children"])) {
-                    if (blockData[":block/parents"][i][":block/children"][0][":block/children"][0].hasOwnProperty([":block/children"])) {
-                        cString = blockData[":block/parents"][i][":block/children"][0][":block/children"][0][":block/children"][0][":block/string"];
-                        cRRGuesses = blockData[":block/parents"][i][":block/children"][0][":block/children"][0][":block/children"][1][":block/string"];
-                        cRRGuessesUid = blockData[":block/parents"][i][":block/children"][0][":block/children"][0][":block/children"][1][":block/uid"];
-                    }
-                }
             }
         }
     }
+    cString = blockData[":block/children"][0][":block/string"];
+    cRRGuesses = blockData[":block/children"][1][":block/string"];
+    cRRGuessesUid = blockData[":block/children"][1][":block/uid"];
 
     //// react-crossword stores guess data in localstorage, which won't work for RR as user might access page with crossword from several browsers/devices
     //// need to store data in RR and then update LS and RR data as required to keep them in sync
@@ -39,7 +35,7 @@ const CrosswordElement = ({ blockUid }) => {
 
     // finally, get the crossword data to build and render
     if (cString != null) {
-        crosswordData = cString.split("^^");
+        crosswordData = cString.split("^^")[1];
     }
 
     useEffect(() => {
@@ -58,7 +54,7 @@ const CrosswordElement = ({ blockUid }) => {
         };
     }, []);
 
-    return <CrosswordProvider data={JSON.parse(crosswordData[1])} storageKey={key} onLoadedCorrect={localStorage.setItem(key, cRRGuessesString)} /*onCellChange={() => window.dispatchEvent(new Event('storage'))}*/ /*isCrosswordCorrect={() => alert("All Correct!")} onAnswerCorrect={() => alert("Correct!")}*/ >
+    return <CrosswordProvider data={JSON.parse(crosswordData)} storageKey={key} onLoadedCorrect={localStorage.setItem(key, cRRGuessesString)} isCrosswordCorrect={() => alert("Congratulations!")} >
         <div class="crosswordGrid">
             <CrosswordGrid />
             <DirectionClues direction="across" />

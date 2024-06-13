@@ -286,7 +286,7 @@ export default {
 
             // setTimeout is needed because sometimes block is left blank
             setTimeout(async () => {
-                await window.roamAlphaAPI.updateBlock({ "block": { "uid": blockUid, "string": "NYT Crossword" } });
+                await window.roamAlphaAPI.updateBlock({ "block": { "uid": blockUid, "string": "**NYT Crossword**" } });
                 var authorString = "";
                 if (cAuthor.match(" and ")) {
                     authorString = "[[";
@@ -309,7 +309,7 @@ export default {
                                         text: "Crossword Definition: #NYTCrosswordData^^" + sourceString + "^^",
                                     },
                                     {
-                                        text: "Crossword Guesses: ",
+                                        text: "Crossword Guesses: #NYTCrosswordData^^{\"guesses\":{}}^^",
                                     },
                                 ],
                             },
