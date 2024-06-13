@@ -12,7 +12,7 @@ const CrosswordElement = ({ blockUid }) => {
     blockData = window.roamAlphaAPI.data.pull("[:node/title :block/string :block/uid {:block/children ...} {:block/parents ...}]", `[:block/uid \"${blockUid}\"]`);
     key = "roam_research_nytcrossword_";
     for (var i = 0; i < blockData[":block/parents"].length; i++) {
-        if (blockData[":block/parents"][i][":block/string"] == "NYT Crossword") {
+        if (blockData[":block/parents"][i][":block/string"] == "**NYT Crossword**") {
             if (blockData[":block/parents"][i].hasOwnProperty([":block/children"])) {
                 key += blockData[":block/parents"][i][":block/children"][0][":block/string"].split(" ~ ")[0];
             }
