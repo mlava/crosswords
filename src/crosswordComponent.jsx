@@ -38,23 +38,28 @@ const CrosswordElement = ({ blockUid }) => {
         crosswordData = cString.split("^^")[1];
     }
 
+    async function storeGuesses() {
+        await sleep(100);
+        let ls = localStorage.getItem(key);
+        if (ls != undefined) { // update RR from LS
+            let string = "Crossword Guesses: #NYTCrosswordData^^" + ls + "^^";
+            window.roamAlphaAPI.updateBlock({ "block": { "uid": cRRGuessesUid, "string": string } });
+        }
+    }
+
     useEffect(() => {
         const fetchGuesses = async () => {
             setGuesses(cRRGuessesString);
         };
         fetchGuesses();
 
-        return () => {
-            let ls = localStorage.getItem(key);
-            if (ls != undefined) { // update RR from LS
-                let string = "Crossword Guesses: #NYTCrosswordData^^" + ls + "^^";
-                window.roamAlphaAPI.updateBlock({ "block": { "uid": cRRGuessesUid, "string": string } });
-            }
+        return async () => {
+            storeGuesses();
             localStorage.removeItem(key); // clean up localstorage :-)
         };
     }, []);
 
-    return <CrosswordProvider data={JSON.parse(crosswordData)} storageKey={key} onLoadedCorrect={localStorage.setItem(key, cRRGuessesString)} isCrosswordCorrect={() => alert("Congratulations!")} >
+    return <CrosswordProvider data={JSON.parse(crosswordData)} storageKey={key} onCorrect={storeGuesses} onLoadedCorrect={localStorage.setItem(key, cRRGuessesString)} isCrosswordCorrect={() => alert("Congratulations!")} >
         <div class="crosswordGrid">
             <CrosswordGrid />
             <DirectionClues direction="across" />
