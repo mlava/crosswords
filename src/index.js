@@ -88,6 +88,7 @@ export default {
 
         async function fetchCrossword(blockUid, today) {
             var cDate, cAuthor, cDay, cMonth, cYear, data, cols, size, rows;
+            breakme: {
             if (today) { // get today's crossword from XWordInfo
                 var url = `https://frozen-forest-74426-64fa1018c64c.herokuapp.com/`;
                 const response = await fetch(url);
@@ -116,7 +117,11 @@ export default {
                 const response = await fetch(url);
                 data = await response.json();
             }
-
+            
+            if (data.circles != null && data.circles.length > 0) {
+                await window.roamAlphaAPI.updateBlock({ "block": { "uid": blockUid, "string": "Sorry. Today's New York Times Crossword has special features (shaded squares) which means that it cannot be rendered." } });
+                break breakme;
+            }
             cDate = data.date.toString();
             cAuthor = data.author.toString();
             cDate = cDate.split("/");
@@ -168,21 +173,17 @@ export default {
 
             let answersGridAcross = data.grid.join('');
             let answersGridDown = "";
-            if (today) {
-                for (var m = 0; m < data.grid.length - 1; m++) {
-                    let n = Math.floor(m / rows) + (rows * (m % rows));
-                    answersGridDown += data.grid[n];
-                }
-            } else {
-                for (var m = 0; m < data.grid.length; m++) {
-                    let n = Math.floor(m / rows) + (rows * (m % rows));
-                    answersGridDown += data.grid[n];
-                }
+            
+            for (var m = 0; m < data.grid.length; m++) {
+                let n = Math.floor(m / rows) + (rows * (m % rows));
+                answersGridDown += data.grid[n];
             }
-
             let sourceObject = {};
             let acrossClues = {};
-            let lastRow = 0;
+            let lastRow = 0;            
+            let downClues = {};
+            let lastCol = 0;
+          
             for (var i = 0; i < data.clues.across.length; i++) {
                 var row = 0, col = 0;
                 var testAnswersGridAcross, index;
@@ -232,9 +233,6 @@ export default {
                 }
             }
             sourceObject['across'] = acrossClues;
-
-            let downClues = {};
-            let lastCol = 0;
 
             for (var i = 0; i < data.clues.down.length; i++) {
                 var row = 0, col = 0;
@@ -322,6 +320,7 @@ export default {
             }, 200);
 
             document.querySelector("body")?.click();
+        }
         };
     },
     onunload: () => {
