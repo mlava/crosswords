@@ -87,7 +87,7 @@ export default {
                 localStorage.removeItem(x));
 
         async function fetchCrossword(blockUid, today) {
-            var cDate, cAuthor, cDay, cMonth, cYear, data, cols, size, rows;
+            var cDate, cAuthor, cDay, cMonth, cYear, data, cols, rows;
             breakme: {
             if (today) { // get today's crossword from XWordInfo
                 var url = `https://frozen-forest-74426-64fa1018c64c.herokuapp.com/`;
@@ -129,7 +129,6 @@ export default {
             cMonth = cDate[0];
             cYear = cDate[2];
             cols = data.size.cols;
-            size = data.size.cols;
             rows = data.size.rows;
 
             let crosswordDate = "";
@@ -175,12 +174,12 @@ export default {
             let answersGridDown = "";
             
             for (var m = 0; m < data.grid.length; m++) {
-                let n = Math.floor(m / rows) + (rows * (m % rows));
+                let n = Math.floor(m / rows) + (cols * (m % rows));
                 answersGridDown += data.grid[n];
             }
             let sourceObject = {};
             let acrossClues = {};
-            let lastRow = 0;            
+            let lastRow = 0;
             let downClues = {};
             let lastCol = 0;
           
@@ -235,8 +234,8 @@ export default {
             sourceObject['across'] = acrossClues;
 
             for (var i = 0; i < data.clues.down.length; i++) {
-                var row = 0, col = 0;
-                var testAnswersGridDown, index;
+                var row = 0, col = 0, index = 0;
+                var testAnswersGridDown;
                 var testAnswer = data.answers.down[i];
 
                 await getIndex();
@@ -247,11 +246,12 @@ export default {
                         testAnswersGridDown = answersGridDown.substring(start + 1);
                         index = testAnswersGridDown.indexOf(testAnswer) + start + 1;
                     }
+                    
                     col = Math.floor(index / rows);
                     row = index % rows;
                     lastCol = col;
                 }
-
+                
                 const regex = /([0-9]{1,3}). (.+)/gm;
                 let m;
                 while ((m = regex.exec(data.clues.down[i])) !== null) {
@@ -269,6 +269,7 @@ export default {
                             answer = data.answers.down[i];
                         }
                     });
+                    
                     if (row != -1) {
                         clue = clue.replaceAll("&quot;", "'");
                         clue = clue.replaceAll("&#39;", "'");
@@ -278,7 +279,6 @@ export default {
                     }
                 }
             }
-
             sourceObject['down'] = downClues;
             let sourceString = JSON.stringify(sourceObject);
 
