@@ -3,6 +3,10 @@ Import, render and complete today's New York Times crossword in Roam Research, o
 <img width="461" alt="image" src="https://github.com/mlava/crosswords/assets/6857790/e0d6a48a-7b23-47d1-bdd6-1ef789f1387d">
 
 **NEW:**
+- fixed stack overflow errors due to my poor programming skills :-)
+- fixed rendering errors for crosswords with double letters
+
+**Previously:**
 - fixed rendering for crosswords with unequal row and column counts
 - Import today's crossword
 
