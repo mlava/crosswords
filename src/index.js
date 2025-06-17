@@ -141,11 +141,9 @@ export default {
             var cDate, cAuthor, cDay, cMonth, cYear, data, cols, rows, crosswordDate;
             breakme: {
                 if (today) { // get today's crossword from XWordInfo
-                    var url = `https://frozen-forest-74426-64fa1018c64c.herokuapp.com/`;
+                    var url = `https://frozen-forest-74426-64fa1018c64c.herokuapp.com/getNYTLatest`;
                     const response = await fetch(url);
-                    console.info(response);
                     data = await response.json();
-                    console.info(data);
                 } else if (guardianToday) { // get today's guardian crossword from an archive on github
                     var url = `https://frozen-forest-74426-64fa1018c64c.herokuapp.com/getGuardianLatest`;
                     const response = await fetch(url);
