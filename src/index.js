@@ -354,6 +354,7 @@ export default {
                             let clueIndex = m[1];
                             let clue = m[2]
                                 .replaceAll("&quot;", "'")
+                                .replaceAll("&#34;", '"')
                                 .replaceAll("&#39;", "'")
                                 .replaceAll("<em>", "")
                                 .replaceAll("</em>", "");
@@ -388,6 +389,7 @@ export default {
                             let clueIndex = m[1];
                             let clue = m[2]
                                 .replaceAll("&quot;", "'")
+                                .replaceAll("&#34;", '"')
                                 .replaceAll("&#39;", "'")
                                 .replaceAll("<em>", "")
                                 .replaceAll("</em>", "");
